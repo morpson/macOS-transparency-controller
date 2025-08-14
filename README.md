@@ -73,8 +73,3 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Author
 
 morpson
-
-## Acknowledgments
-
-- Inspired by macOS accessibility features
-- Thanks to the macOS community for testing and feedback
