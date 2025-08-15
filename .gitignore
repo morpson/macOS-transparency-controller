@@ -30,3 +30,6 @@ Temporary Items
 .idea/
 *.swp
 *.swo
+
+# SpecStory files
+.specstory/
