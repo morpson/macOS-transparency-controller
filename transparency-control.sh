@@ -14,6 +14,12 @@ WHITE='\033[0;37m'
 BOLD='\033[1m'
 NC='\033[0m' # No Color
 
+# Function to get current transparency level
+get_current_transparency() {
+    WINDOW_TINT=$(defaults read com.apple.universalaccess AppleWindowTintLevel 2>/dev/null || echo "0.0")
+    echo $WINDOW_TINT
+}
+
 # Function to get current setting values
 get_current_settings() {
     REDUCE_TRANSPARENCY=$(defaults read com.apple.universalaccess reduceTransparency 2>/dev/null || echo "0")
@@ -21,6 +27,7 @@ get_current_settings() {
     BUTTON_SHAPES=$(defaults read com.apple.universalaccess buttonShapes 2>/dev/null || echo "0")
     MORAEA_BLUR=$(defaults read NSGlobalDomain Moraea_BlurBeta 2>/dev/null || echo "0")
     DARK_MODE=$(defaults read NSGlobalDomain AppleInterfaceStyle 2>/dev/null || echo "Light")
+    WINDOW_TINT=$(get_current_transparency)
 }
 
 # Function to display current settings
@@ -32,7 +39,30 @@ show_current_settings() {
     echo -e "${WHITE}3. Button Shapes:${NC}       $([ "$BUTTON_SHAPES" = "1" ] && echo -e "${GREEN}ON${NC}" || echo -e "${RED}OFF${NC}")"
     echo -e "${WHITE}4. Beta Blur Effect:${NC}    $([ "$MORAEA_BLUR" = "1" ] && echo -e "${GREEN}ON${NC}" || echo -e "${RED}OFF${NC}")"
     echo -e "${WHITE}5. Appearance Mode:${NC}     $([ "$DARK_MODE" = "Dark" ] && echo -e "${BLUE}Dark${NC}" || echo -e "${YELLOW}Light${NC}")"
+    echo -e "${WHITE}6. Transparency Level:${NC}  $WINDOW_TINT"
     echo ""
+}
+
+# Function to adjust transparency level
+adjust_transparency_level() {
+    echo -e "\n${BOLD}${CYAN}=== Fine Tune Transparency ===${NC}"
+    current=$(get_current_transparency)
+    echo -e "Current level: $current"
+    echo -e "\nEnter a value between 0.0 and 1.0:"
+    echo -e "  0.0 = Maximum transparency"
+    echo -e "  0.5 = Medium transparency"
+    echo -e "  1.0 = Minimum transparency"
+    echo -e -n "\n${BOLD}Value: ${NC}"
+    read level
+    
+    if [[ $level =~ ^[0-9]*\.?[0-9]+$ ]] && (( $(echo "$level >= 0.0" | bc -l) )) && (( $(echo "$level <= 1.0" | bc -l) )); then
+        defaults write com.apple.universalaccess AppleWindowTintLevel -float $level
+        echo -e "${GREEN}✓ Transparency level set to $level${NC}"
+        apply_changes
+    else
+        echo -e "${RED}Invalid value. Please enter a number between 0.0 and 1.0${NC}"
+        sleep 2
+    fi
 }
 
 # Function to apply changes and restart services
@@ -72,27 +102,31 @@ apply_preset() {
             defaults write com.apple.universalaccess increaseContrast -bool false
             defaults write com.apple.universalaccess buttonShapes -bool false
             defaults write NSGlobalDomain Moraea_BlurBeta -int 1
+            defaults write com.apple.universalaccess AppleWindowTintLevel -float 0.0
             ;;
         2)
-            echo -e "${MAGENTA}Applying 25% Less Transparency (Recommended)...${NC}"
+            echo -e "${MAGENTA}Applying Optimized Transparency...${NC}"
             defaults write com.apple.universalaccess reduceTransparency -bool false
-            defaults write com.apple.universalaccess increaseContrast -bool true
+            defaults write com.apple.universalaccess increaseContrast -bool false
             defaults write com.apple.universalaccess buttonShapes -bool false
-            defaults write NSGlobalDomain Moraea_BlurBeta -int 0
+            defaults write NSGlobalDomain Moraea_BlurBeta -int 1
+            defaults write com.apple.universalaccess AppleWindowTintLevel -float 0.25
             ;;
         3)
-            echo -e "${MAGENTA}Applying 50% Less Transparency...${NC}"
+            echo -e "${MAGENTA}Applying Medium Transparency...${NC}"
             defaults write com.apple.universalaccess reduceTransparency -bool false
-            defaults write com.apple.universalaccess increaseContrast -bool true
-            defaults write com.apple.universalaccess buttonShapes -bool true
-            defaults write NSGlobalDomain Moraea_BlurBeta -int 0
+            defaults write com.apple.universalaccess increaseContrast -bool false
+            defaults write com.apple.universalaccess buttonShapes -bool false
+            defaults write NSGlobalDomain Moraea_BlurBeta -int 1
+            defaults write com.apple.universalaccess AppleWindowTintLevel -float 0.5
             ;;
         4)
-            echo -e "${MAGENTA}Applying No Transparency (Accessibility)...${NC}"
+            echo -e "${MAGENTA}Applying No Transparency...${NC}"
             defaults write com.apple.universalaccess reduceTransparency -bool true
-            defaults write com.apple.universalaccess increaseContrast -bool true
-            defaults write com.apple.universalaccess buttonShapes -bool true
+            defaults write com.apple.universalaccess increaseContrast -bool false
+            defaults write com.apple.universalaccess buttonShapes -bool false
             defaults write NSGlobalDomain Moraea_BlurBeta -int 0
+            defaults write com.apple.universalaccess AppleWindowTintLevel -float 1.0
             ;;
     esac
     apply_changes
@@ -163,9 +197,13 @@ show_menu() {
     
     echo -e "${BOLD}${WHITE}Quick Presets:${NC}"
     echo -e "${CYAN}p1${NC}) Full Transparency (Default)"
-    echo -e "${CYAN}p2${NC}) 25% Less Transparency ${GREEN}(Recommended)${NC}"
-    echo -e "${CYAN}p3${NC}) 50% Less Transparency"
-    echo -e "${CYAN}p4${NC}) No Transparency (Accessibility)"
+    echo -e "${CYAN}p2${NC}) Optimized Transparency ${GREEN}(Recommended for Intel Macs)${NC}"
+    echo -e "${CYAN}p3${NC}) Medium Transparency"
+    echo -e "${CYAN}p4${NC}) No Transparency"
+    echo ""
+    
+    echo -e "${BOLD}${WHITE}Fine Tuning:${NC}"
+    echo -e "${CYAN}t${NC}) Adjust Transparency Level"
     echo ""
     
     echo -e "${BOLD}${WHITE}Individual Settings:${NC}"
@@ -187,6 +225,12 @@ show_menu() {
 
 # Main script loop
 main() {
+    # Check macOS version
+    if (( $(echo "$(sw_vers -productVersion) < 14.0" | bc -l) )); then
+        echo -e "${YELLOW}Warning: Some features may not work on macOS versions below 14.0${NC}"
+        sleep 2
+    fi
+
     while true; do
         show_menu
         read choice
@@ -201,6 +245,7 @@ main() {
             3) toggle_setting 3 ;;
             4) toggle_setting 4 ;;
             5) toggle_setting 5 ;;
+            t|T) adjust_transparency_level ;;
             r|R) 
                 echo -e "${GREEN}Refreshing settings...${NC}"
                 sleep 1

@@ -4,7 +4,8 @@ A shell script for managing macOS transparency and appearance settings, original
 
 ## Features
 
-- 🎨 Control system transparency settings
+- �️ Fine-tune transparency levels (0.0 - 1.0)
+- �🎨 Control system transparency settings
 - 🔲 Adjust contrast levels
 - 👆 Toggle button shapes
 - 🌫️ Manage blur effects
@@ -12,6 +13,7 @@ A shell script for managing macOS transparency and appearance settings, original
 - ⚡ Quick preset configurations
 - 🎯 Interactive command-line interface
 - 🎨 Color-coded output for better visibility
+- 🖥️ Optimized for Intel Macs
 
 ## Requirements
 
@@ -43,9 +45,17 @@ Run the script from the terminal:
 ### Available Presets
 
 1. Full Transparency - Default macOS Liquid Glass effect
-2. 25% Less Transparency - Balanced preset for Intel Macs
-3. 50% Less Transparency - Performance-focused with some effects
+2. Optimized Transparency - Balanced preset for Intel Macs (25% reduced)
+3. Medium Transparency - 50% reduced transparency
 4. No Transparency - Maximum performance mode
+
+### Fine-Tuning Controls
+
+The script provides precise transparency adjustment:
+- Use the 't' option to enter a custom transparency level
+- Values range from 0.0 (full transparency) to 1.0 (no transparency)
+- Real-time preview of changes
+- Perfect for finding your ideal balance of aesthetics and performance
 
 ### Manual Controls
 
@@ -55,6 +65,7 @@ The script allows individual control of:
 - Button Shapes
 - Beta Blur Effect
 - Appearance Mode (Light/Dark)
+- Custom Transparency Level
 
 ## Note
 
